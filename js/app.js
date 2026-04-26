@@ -1,18 +1,39 @@
-// Logic to sync with Supabase tables: portal_state
 const { RANK_ORDER, RANK_LABELS, ROLE_NAMES, COMMAND_RANKS, COMMAND_CALLSIGNS } = INITIAL_CONFIG;
 
 async function getState() {
-    const { data } = await supabase.from('portal_state').select('state').eq('id', 1).single();
+    const { data } = await sbClient.from('portal_state').select('state').eq('id', 1).single();
     return data ? data.state : { shiftActive: false, roster: [] };
 }
 
 async function saveState(newState) {
-    await supabase.from('portal_state').update({ state: newState }).eq('id', 1);
+    await sbClient.from('portal_state').update({ state: newState }).eq('id', 1);
+}
+
+function recalculate(state) {
+    const cmdMembers = state.roster.filter(u => COMMAND_RANKS.includes(u.rank));
+    const squadPool = state.roster.filter(u => !COMMAND_RANKS.includes(u.rank));
+
+    // Sort squad by rank priority
+    squadPool.sort((a,b) => RANK_ORDER.indexOf(a.rank) - RANK_ORDER.indexOf(b.rank));
+
+    cmdMembers.forEach(u => {
+        u.callsign = COMMAND_CALLSIGNS[u.rank] || "K-??";
+        u.squad = "Command";
+        u.roleName = "Command";
+    });
+
+    squadPool.forEach((u, i) => {
+        const num = i + 1;
+        u.callsign = `D-0${num}`;
+        u.squad = "D Squad";
+        u.roleName = ROLE_NAMES[num] || "Operator";
+    });
 }
 
 async function renderPortal() {
     const state = await getState();
     const pill = document.getElementById("statusPill");
+    
     if(state.shiftActive) {
         pill.textContent = "Shift Active"; pill.className = "status-pill active";
         document.getElementById("viewOffline").style.display = "none";
@@ -22,21 +43,40 @@ async function renderPortal() {
         document.getElementById("viewOffline").style.display = "block";
         document.getElementById("viewCheckin").style.display = "none";
     }
-    // Update Roster Table...
+
     const tbody = document.getElementById("rosterBody");
-    tbody.innerHTML = state.roster.map(u => `<tr><td>${u.callsign}</td><td>${u.username}</td><td>${RANK_LABELS[u.rank]}</td><td>${u.roleName}</td><td>${u.squad}</td></tr>`).join("");
+    if (state.roster.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:20px; color:gray;">No units checked in</td></tr>`;
+    } else {
+        tbody.innerHTML = state.roster.map(u => `
+            <tr>
+                <td class="callsign-cell">${u.callsign}</td>
+                <td>${u.username}</td>
+                <td>${RANK_LABELS[u.rank]}</td>
+                <td>${u.roleName}</td>
+                <td>${u.squad}</td>
+            </tr>
+        `).join("");
+    }
 }
 
-// Real-time listener
-supabase.channel('state-changes').on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'portal_state' }, renderPortal).subscribe();
+// Subscribe to live updates
+sbClient.channel('state-changes')
+    .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'portal_state' }, renderPortal)
+    .subscribe();
 
 async function handleCheckin() {
     const user = document.getElementById("inputUsername").value.trim();
     const rank = document.getElementById("inputRank").value;
+    if(!user || !rank) return alert("Please enter username and rank");
+
     const state = await getState();
-    // (Recalculate logic here...)
-    state.roster.push({ username: user, rank: rank, callsign: "TBD", roleName: "TBD", squad: "D Squad" });
+    if(state.roster.find(u => u.username.toLowerCase() === user.toLowerCase())) return alert("Already checked in");
+
+    state.roster.push({ username: user, rank: rank });
+    recalculate(state);
     await saveState(state);
+    renderPortal();
 }
 
 renderPortal();
