@@ -4,6 +4,8 @@
 
 const { RANK_ORDER, RANK_LABELS, ROLE_NAMES, COMMAND_RANKS, COMMAND_CALLSIGNS } = INITIAL_CONFIG;
 
+// --- DATABASE COMMUNICATION ---
+
 function getDefaults() {
     return {
         shiftActive: false,
@@ -39,20 +41,29 @@ async function saveState(newState) {
     } catch (err) { console.error("Save Error", err); }
 }
 
+// --- CORE LOGIC (With Pinning Specialists to Bottom) ---
+
 function recalculate(state) {
     const roster = state.roster || [];
+    
     const cmdMembers = roster.filter(u => COMMAND_RANKS.includes(u.rank));
-    const specialPool = roster.filter(u => u.specialRole === "SNIPER" || u.specialRole === "NEGOTIATOR");
+    const specialPool = roster.filter(u => (u.specialRole === "SNIPER" || u.specialRole === "NEGOTIATOR") && !COMMAND_RANKS.includes(u.rank));
     const squadPool = roster.filter(u => !COMMAND_RANKS.includes(u.rank) && !u.specialRole);
 
-    squadPool.sort((a, b) => (RANK_ORDER.indexOf(a.rank) - RANK_ORDER.indexOf(b.rank)) || (a.checkInOrder - b.checkInOrder));
+    // Sort Squad units by Rank Order (Commander -> Operator)
+    squadPool.sort((a, b) => {
+        const ri = RANK_ORDER.indexOf(a.rank) - RANK_ORDER.indexOf(b.rank);
+        return ri !== 0 ? ri : a.checkInOrder - b.checkInOrder;
+    });
 
+    // 1. Assign Command
     cmdMembers.forEach(u => {
         u.callsign = COMMAND_CALLSIGNS[u.rank] || "K-??";
         u.squad = "Command";
         u.roleName = "Command";
     });
 
+    // 2. Assign Squads (D and B)
     squadPool.forEach((u, i) => {
         const isSquadB = state.splitMode || i >= 4;
         const slot = (i % 4) + 1;
@@ -61,6 +72,7 @@ function recalculate(state) {
         u.roleName = u.manualRoleName || ROLE_NAMES[slot] || "Operator";
     });
 
+    // 3. Assign Specialists (Pinned to bottom)
     let sCount = 1, fCount = 1;
     specialPool.forEach(u => {
         if (u.specialRole === "SNIPER") {
@@ -73,6 +85,13 @@ function recalculate(state) {
             u.roleName = "Negotiator";
         }
     });
+
+    // 4. FINAL SORT FOR TABLE: Command -> Squads (by Rank) -> Specialists
+    state.roster = [
+        ...cmdMembers.sort((a, b) => RANK_ORDER.indexOf(a.rank) - RANK_ORDER.indexOf(b.rank)),
+        ...squadPool,
+        ...specialPool
+    ];
 }
 
 async function renderPortal() {
@@ -104,7 +123,8 @@ async function renderPortal() {
     if (cur === 0) {
         tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:30px; color:#6b7a8d;">No units currently on duty.</td></tr>`;
     } else {
-        tbody.innerHTML = state.roster.sort((a,b) => a.checkInOrder - b.checkInOrder).map(u => `
+        // Table display uses the order established in recalculate()
+        tbody.innerHTML = state.roster.map(u => `
             <tr>
                 <td class="callsign-cell" style="font-weight:bold; color:#0a84ff;">${u.callsign || "TBD"}</td>
                 <td>${u.username}</td>
