@@ -1,6 +1,6 @@
 /**
  * FWPD SWAT | Global App Logic
- * Final Version: Fixed Roster Visibility
+ * Final Version: Full Real-time Synchronization
  */
 
 const { RANK_ORDER, RANK_LABELS, ROLE_NAMES, COMMAND_RANKS, COMMAND_CALLSIGNS } = INITIAL_CONFIG;
@@ -81,7 +81,7 @@ async function renderPortal() {
     const state = await getState();
     const pill = document.getElementById("statusPill");
     
-    // 1. Update Shift Status
+    // 1. Update Shift Status View
     if (state.shiftActive) {
         pill.textContent = "Shift Active";
         pill.className = "status-pill active";
@@ -103,7 +103,6 @@ async function renderPortal() {
     if (roster.length === 0) {
         tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:30px; color:#6b7a8d;">No units currently on duty.</td></tr>`;
     } else {
-        // Sort roster by check-in order for the display
         const displayRoster = [...roster].sort((a,b) => a.checkInOrder - b.checkInOrder);
         
         tbody.innerHTML = displayRoster.map(u => `
@@ -121,9 +120,12 @@ async function renderPortal() {
 // --- USER ACTIONS ---
 
 async function handleCheckin() {
-    const username = document.getElementById("inputUsername").value.trim();
-    const rank = document.getElementById("inputRank").value;
+    const usernameInput = document.getElementById("inputUsername");
+    const rankInput = document.getElementById("inputRank");
     const msgEl = document.getElementById("checkinMsg");
+    
+    const username = usernameInput.value.trim();
+    const rank = rankInput.value;
     
     if (!username || !rank) {
         msgEl.textContent = "Please enter username and rank.";
@@ -137,7 +139,6 @@ async function handleCheckin() {
         return;
     }
 
-    // Duplicate check
     if (state.roster.find(u => u.username.toLowerCase() === username.toLowerCase())) {
         alert("You are already checked in.");
         return;
@@ -153,26 +154,32 @@ async function handleCheckin() {
 
     state.roster.push(entry);
     recalculate(state);
+    
+    // This push to Supabase triggers the 'UPDATE' event for everyone else
     await saveState(state);
     
-    // Clear form
-    document.getElementById("inputUsername").value = "";
-    
-    // Show confirmation and refresh
+    usernameInput.value = "";
     msgEl.textContent = "Check-in Successful!";
     msgEl.className = "msg success";
     
+    // Local update
     renderPortal(); 
 }
 
-// --- REAL-TIME SYNC ---
+// --- THE MAGIC: REAL-TIME SYNC ---
 
-sbClient.channel('portal-live')
-    .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'portal_state' }, () => {
-        console.log("Global Update Received");
+// This opens a websocket to Supabase.
+// Whenever the 'portal_state' table is UPDATED, it runs renderPortal().
+sbClient.channel('any')
+    .on('postgres_changes', { 
+        event: 'UPDATE', 
+        schema: 'public', 
+        table: 'portal_state' 
+    }, payload => {
+        console.log("Global update detected! Syncing roster...");
         renderPortal();
     })
     .subscribe();
 
-// Initial load
+// Initial load when page opens
 renderPortal();
