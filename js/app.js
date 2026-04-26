@@ -1,8 +1,14 @@
 const { RANK_ORDER, RANK_LABELS, ROLE_NAMES, COMMAND_RANKS, COMMAND_CALLSIGNS } = INITIAL_CONFIG;
 
 async function getState() {
-    const { data } = await sbClient.from('portal_state').select('state').eq('id', 1).single();
-    return data ? data.state : { shiftActive: false, roster: [] };
+    try {
+        const { data, error } = await sbClient.from('portal_state').select('state').eq('id', 1).single();
+        if (error) throw error;
+        return data ? data.state : { shiftActive: false, roster: [] };
+    } catch (err) {
+        console.error("Error fetching state:", err);
+        return { shiftActive: false, roster: [] };
+    }
 }
 
 async function saveState(newState) {
@@ -13,7 +19,6 @@ function recalculate(state) {
     const cmdMembers = state.roster.filter(u => COMMAND_RANKS.includes(u.rank));
     const squadPool = state.roster.filter(u => !COMMAND_RANKS.includes(u.rank));
 
-    // Sort squad by rank priority
     squadPool.sort((a,b) => RANK_ORDER.indexOf(a.rank) - RANK_ORDER.indexOf(b.rank));
 
     cmdMembers.forEach(u => {
@@ -45,7 +50,7 @@ async function renderPortal() {
     }
 
     const tbody = document.getElementById("rosterBody");
-    if (state.roster.length === 0) {
+    if (!state.roster || state.roster.length === 0) {
         tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:20px; color:gray;">No units checked in</td></tr>`;
     } else {
         tbody.innerHTML = state.roster.map(u => `
@@ -60,7 +65,7 @@ async function renderPortal() {
     }
 }
 
-// Subscribe to live updates
+// Live Listener
 sbClient.channel('state-changes')
     .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'portal_state' }, renderPortal)
     .subscribe();

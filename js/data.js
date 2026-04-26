@@ -2,6 +2,7 @@ const SB_URL = "https://rgyvkqvqdncszbxnmbyy.supabase.co";
 const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJneXZrcXZxZG5jc3pieG5tYnl5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcyMTY5MDMsImV4cCI6MjA5Mjc5MjkwM30.186O8VIA2Medvzd7klrqmwPgJurRqpl3eHVTDwwWUVM";
 
 // Initialize Supabase Client
+// We use 'sbClient' to avoid name collisions with the global 'supabase' library
 const sbClient = supabase.createClient(SB_URL, SB_KEY);
 
 const INITIAL_CONFIG = {
