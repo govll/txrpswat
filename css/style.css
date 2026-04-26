@@ -13,6 +13,7 @@ header{background:var(--surface);border-bottom:1px solid var(--border);padding:0
 .logo-badge{width:40px;height:40px;background:var(--accent);clip-path:polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%);display:flex;align-items:center;justify-content:center;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:11px;color:#fff;letter-spacing:0.5px;flex-shrink:0;}
 .logo-text{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:1.1rem;letter-spacing:3px;color:var(--text-bright);text-transform:uppercase;}
 .logo-sub{font-family:'Share Tech Mono',monospace;font-size:0.65rem;color:var(--accent);letter-spacing:2px;text-transform:uppercase;margin-top:1px;}
+.logo-img{height:42px;width:auto;flex-shrink:0;filter:drop-shadow(0 0 5px rgba(10,132,255,0.3));}
 
 .status-pill{font-family:'Share Tech Mono',monospace;font-size:0.7rem;letter-spacing:1.5px;padding:4px 12px;border-radius:2px;text-transform:uppercase;}
 .status-pill.active{background:rgba(0,201,122,0.12);border:1px solid var(--success);color:var(--success);}
