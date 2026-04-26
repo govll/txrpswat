@@ -3,44 +3,106 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fort Worth Police Department SWAT - Coming Soon</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #1a1a2e;
-            color: #fff;
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0;
-        }
-        .container {
-            text-align: center;
-            padding: 40px;
-            border: 2px solid #c9a227;
-            background-color: rgba(255,255,255,0.05);
-        }
-        h1 {
-            color: #c9a227;
-            margin-bottom: 10px;
-        }
-        h2 {
-            color: #aaa;
-            font-weight: normal;
-            margin-bottom: 30px;
-        }
-        p {
-            font-size: 18px;
-            color: #fff;
-        }
-    </style>
+    <title>FWPD SWAT | Shift Assignment Portal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <!-- Supabase Library -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
-    <div class="container">
-        <h1>Fort Worth Police Department SWAT</h1>
-        <h2>Assignment Panel</h2>
-        <p>Coming Soon</p>
+
+<header>
+    <div class="logo">
+        <div class="logo-badge">FW</div>
+        <div>
+            <div class="logo-text">FWPD SWAT</div>
+            <div class="logo-sub">Shift Assignment Portal</div>
+        </div>
     </div>
+    <div class="header-right">
+        <div id="statusPill" class="status-pill inactive">Connecting...</div>
+        <button class="btn-admin" onclick="openAdmin()">Supervisor Login</button>
+    </div>
+</header>
+
+<main>
+    <div id="viewOffline" class="view">
+        <div class="offline-screen">
+            <div class="offline-icon">&#9888;</div>
+            <div class="offline-title">Portal Offline</div>
+            <div class="offline-sub">No active shift. Contact your shift supervisor.</div>
+        </div>
+    </div>
+
+    <div id="viewCheckin" class="view">
+        <div id="squadModeBadge" class="squad-mode-badge single">&#9632; Single Squad Mode</div>
+        <div class="checkin-wrap">
+            <div>
+                <div class="section-header">Shift Check-In</div>
+                <div class="form-group">
+                    <label>ERLC Username</label>
+                    <input type="text" id="inputUsername" placeholder="Your in-game username">
+                </div>
+                <div class="form-group">
+                    <label>Rank</label>
+                    <select id="inputRank">
+                        <option value="">-- Select rank --</option>
+                        <option value="COMMANDER">Commander</option>
+                        <option value="ASST_COMMANDER">Asst. Commander</option>
+                        <option value="LIEUTENANT">Lieutenant</option>
+                        <option value="SERGEANT">Sergeant</option>
+                        <option value="CORPORAL">Corporal</option>
+                        <option value="SENIOR_OPERATOR">Senior Operator</option>
+                        <option value="OPERATOR">Operator</option>
+                    </select>
+                </div>
+                <div id="checkinMsg" class="msg"></div>
+                <button class="btn-primary" onclick="handleCheckin()">Request Assignment</button>
+            </div>
+            <div id="assignmentResult" style="display:none;">
+                <div class="assignment-card">
+                    <div class="callsign-display" id="displayCallsign">--</div>
+                    <div class="role-display" id="displayRole">--</div>
+                </div>
+            </div>
+        </div>
+        <div class="roster-panel">
+            <table>
+                <thead><tr><th>Callsign</th><th>Username</th><th>Rank</th><th>Role</th><th>Squad</th></tr></thead>
+                <tbody id="rosterBody"></tbody>
+            </table>
+        </div>
+    </div>
+</main>
+
+<div class="modal-overlay" id="adminModal">
+    <div class="modal">
+        <div class="modal-header">
+            <div class="modal-title">Supervisor Panel</div>
+            <button class="btn-close" onclick="closeAdmin()">&#10005;</button>
+        </div>
+        <div class="modal-body">
+            <div id="adminLogin">
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="loginEmail">
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="loginPassword">
+                </div>
+                <button class="btn-primary" onclick="doLogin()">Authenticate</button>
+            </div>
+            <div id="adminPanel" style="display:none;">
+                <button class="btn-danger-sm" onclick="toggleShift()" id="shiftBtn">Toggle Shift</button>
+                <div id="logContainer" style="margin-top:20px; font-family:monospace; font-size:12px; background:#000; padding:10px; height:150px; overflow-y:auto;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="js/data.js"></script>
+<script src="js/app.js"></script>
+<script src="js/admin.js"></script>
 </body>
 </html>
