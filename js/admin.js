@@ -50,6 +50,11 @@ async function toggleShift() {
     if(!state.shiftActive) {
         state.roster = [];
         state.splitMode = false;
+    } else {
+        // --- START RELEVANT CHANGE ---
+        // Ensure every new shift defaults to capacity 5
+        state.maxUnits = 5;
+        // --- END RELEVANT CHANGE ---
     }
     await saveState(state);
     await addLog(state.shiftActive ? "SHIFT STARTED" : "SHIFT CLOSED / ROSTER RESET");
@@ -132,5 +137,11 @@ function syncAdminPanel(state) {
     if (prevVal) select.value = prevVal;
 
     document.getElementById("splitModeBtn").textContent = state.splitMode ? "Disable Multi-Squad" : "Enable Multi-Squad";
+    
+    // Ensure input reflects the current state (defaults to 5)
+    if (document.getElementById("maxUnitsInput")) {
+        document.getElementById("maxUnitsInput").value = state.maxUnits || 5;
+    }
+    
     renderLogs();
 }

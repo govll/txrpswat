@@ -13,7 +13,8 @@ let currentUserId = localStorage.getItem("swat_session_id") || null;
 async function getState() {
     try {
         const { data, error } = await sbClient.from('portal_state').select('state').eq('id', 1).single();
-        if (error || !data) return { roster: [], shiftActive: false, maxUnits: 20, splitMode: false };
+        // Default maxUnits is now 5
+        if (error || !data) return { roster: [], shiftActive: false, maxUnits: 5, splitMode: false };
         return data.state;
     } catch (err) { return { roster: [], shiftActive: false }; }
 }
@@ -31,6 +32,13 @@ async function saveState(newState) {
 function recalculate(state) {
     if (!state || !state.roster) return;
     const roster = state.roster;
+    
+    // --- START RELEVANT CHANGE ---
+    // AUTO-SWAP: When roster hits 5+, automatically enable splitMode
+    if (roster.length >= 5 && !state.splitMode) {
+        state.splitMode = true;
+    }
+    // --- END RELEVANT CHANGE ---
     
     // 1. Separate into pools
     const cmdMembers = roster.filter(u => COMMAND_RANKS.includes(u.rank));
@@ -102,7 +110,7 @@ function renderPortal(state) {
     }
 
     // Update Capacity
-    const max = state.maxUnits || 20;
+    const max = state.maxUnits || 5; // Defaulted to 5
     const cur = (state.roster || []).length;
     if(document.getElementById("capacityText")) document.getElementById("capacityText").textContent = `${cur} / ${max}`;
     if(document.getElementById("capacityFill")) document.getElementById("capacityFill").style.width = Math.min(100, (cur/max)*100) + "%";
@@ -148,7 +156,8 @@ async function handleCheckin() {
     if (!username || !rank) return;
 
     const state = await getState();
-    if (state.roster.length >= (state.maxUnits || 20)) return alert("Shift full.");
+    // Default capacity check is now 5
+    if (state.roster.length >= (state.maxUnits || 5)) return alert("Shift full.");
     if (state.roster.find(u => u.username.toLowerCase() === username.toLowerCase())) return alert("Already checked in.");
 
     const newId = "u_" + Date.now();
