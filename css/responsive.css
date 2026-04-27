@@ -1,0 +1,133 @@
+/* responsive.css */
+
+/* Tablet & Smaller Laptops (1024px and down) */
+@media (max-width: 1024px) {
+    main {
+        padding: 2rem 1.5rem;
+    }
+    
+    .checkin-wrap {
+        gap: 2rem;
+    }
+}
+
+/* Small Tablets & Large Phones (768px and down) */
+@media (max-width: 768px) {
+    header {
+        padding: 0 1rem;
+    }
+
+    .logo-text {
+        font-size: 0.9rem;
+        letter-spacing: 2px;
+    }
+
+    .logo-img {
+        height: 34px;
+    }
+
+    .btn-admin {
+        padding: 6px 12px;
+        font-size: 0.75rem;
+    }
+
+    .checkin-wrap {
+        grid-template-columns: 1fr; /* Stack form and assignment card */
+    }
+
+    .callsign-display {
+        font-size: 2.5rem;
+    }
+
+    .roster-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+
+    /* Table Responsiveness: allow horizontal scroll on small screens */
+    .roster-panel {
+        overflow-x: auto;
+    }
+
+    table {
+        min-width: 600px; /* Ensures table doesn't squash too much */
+    }
+
+    .modal {
+        margin: 0.5rem;
+        max-height: 95vh;
+    }
+}
+
+/* Small Mobile Devices (480px and down) */
+@media (max-width: 480px) {
+    header {
+        height: auto;
+        padding: 10px;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 10px;
+    }
+
+    .header-right {
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .logo {
+        width: 100%;
+        justify-content: center;
+        margin-bottom: 5px;
+    }
+
+    main {
+        padding: 1.5rem 1rem;
+    }
+
+    .offline-title {
+        font-size: 1.5rem;
+        letter-spacing: 2px;
+    }
+
+    .assignment-card {
+        padding: 1.5rem;
+    }
+
+    .assignment-meta {
+        grid-template-columns: 1fr; /* Stack meta items */
+    }
+
+    .desig-row {
+        grid-template-columns: 1fr; /* Stack admin unit rows */
+        gap: 0.5rem;
+        text-align: center;
+    }
+
+    .desig-select {
+        width: 100%;
+    }
+
+    .section-header {
+        font-size: 1.2rem;
+    }
+
+    /* Make buttons larger for touch targets */
+    .btn-primary, .btn-admin {
+        min-height: 44px;
+    }
+}
+
+/* Fix for very small height screens (Landscape phones) */
+@media (max-height: 500px) {
+    .modal {
+        max-height: 85vh;
+    }
+    
+    .offline-screen {
+        min-height: auto;
+        padding: 2rem 0;
+    }
+}
