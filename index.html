@@ -28,133 +28,32 @@
         </div>
     </div>
     <div class="header-right">
-        <div id="statusPill" class="status-pill inactive">Connecting...</div>
+        <div id="statusPill" class="status-pill inactive">ACCOUNT TERMINATED</div>
         <button class="btn-admin" onclick="openAdmin()">Supervisor Login</button>
     </div>
 </header>
-
 <main>
-    <div id="viewOffline" class="view">
-        <div class="offline-screen">
-            <div class="offline-icon">&#9888;</div>
-            <div class="offline-title">Portal Offline</div>
-            <div class="offline-sub">No active shift. Contact your shift supervisor.</div>
-        </div>
-    </div>
-
-    <div id="viewCheckin" class="view">
-        <div id="squadModeBadge" class="squad-mode-badge single">&#9632; Single Squad Mode</div>
-        <div class="checkin-wrap">
-            <div>
-                <div class="section-header">Shift Check-In</div>
-                
-                <div style="margin-bottom: 15px; font-family: 'Share Tech Mono'; font-size: 12px; color: #888;">
-                    SHIFT CAPACITY: <span id="capacityText">0 / 5</span>
-                    <div style="width: 100%; height: 4px; background: #222; margin-top: 5px; border-radius: 2px; overflow: hidden;">
-                        <div id="capacityFill" style="width: 0%; height: 100%; background: #0a84ff; transition: 0.3s;"></div>
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label>ERLC Username</label>
-                    <input type="text" id="inputUsername" placeholder="Your in-game username">
-                </div>
-                <div class="form-group">
-                    <label>Rank</label>
-                    <select id="inputRank">
-                        <option value="">-- Select rank --</option>
-                        <option value="COMMANDER">Commander</option>
-                        <option value="ASST_COMMANDER">Asst. Commander</option>
-                        <option value="LIEUTENANT">Lieutenant</option>
-                        <option value="SERGEANT">Sergeant</option>
-                        <option value="CORPORAL">Corporal</option>
-                        <option value="SENIOR_OPERATOR">Senior Operator</option>
-                        <option value="OPERATOR">Operator</option>
-                    </select>
-                </div>
-                <div id="checkinMsg" class="msg"></div>
-                <button class="btn-primary" onclick="handleCheckin()">Request Assignment</button>
-            </div>
-            <div id="assignmentResult" style="display:none;">
-                <div class="assignment-card">
-                    <div class="callsign-display" id="displayCallsign">--</div>
-                    <div class="role-display" id="displayRole">--</div>
-                    <div id="displaySquad" style="font-size: 12px; color: #888; margin-top: 5px; font-family: 'Share Tech Mono';"></div>
-                </div>
-            </div>
-        </div>
-        <div class="roster-panel">
-            <table>
-                <thead><tr><th>Callsign</th><th>Username</th><th>Rank</th><th>Role</th><th>Squad</th></tr></thead>
-                <tbody id="rosterBody"></tbody>
-            </table>
-        </div>
-    </div>
-</main>
-
-<div class="modal-overlay" id="adminModal">
-    <div class="modal" style="max-width: 600px;">
-        <div class="modal-header">
-            <div class="modal-title">Supervisor Panel</div>
-            <button class="btn-close" onclick="closeAdmin()">&#10005;</button>
-        </div>
-        <div class="modal-body">
-            <div id="adminLogin">
-                <div class="form-group">
-                    <label>Email</label>
-                    <input type="email" id="loginEmail">
-                </div>
-                <div class="form-group">
-                    <label>Password</label>
-                    <input type="password" id="loginPassword">
-                </div>
-                <button class="btn-primary" onclick="doLogin()">Authenticate</button>
-            </div>
-            <div id="adminPanel" style="display:none;">
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
-                    <div style="background: #111; padding: 15px; border: 1px solid #222;">
-                        <label style="font-size: 11px; color: #888; display: block; margin-bottom: 10px;">SHIFT STATUS</label>
-                        <button class="btn-danger-sm" onclick="toggleShift()" id="shiftBtn" style="width: 100%;">Toggle Shift</button>
-                    </div>
-                    <div style="background: #111; padding: 15px; border: 1px solid #222;">
-                        <label style="font-size: 11px; color: #888; display: block; margin-bottom: 5px;">SHIFT PARAMETERS</label>
-                        <input type="number" id="maxUnitsInput" value="5" style="width: 50px; background: #000; border: 1px solid #333; color: #fff; padding: 4px;">
-                        <button onclick="updateMaxUnits()" class="btn-primary" style="padding: 5px 10px; font-size: 10px;">SET MAX</button>
-                        <button onclick="toggleSplitMode()" id="splitModeBtn" class="btn-primary" style="padding: 5px 10px; font-size: 10px; margin-top: 5px; width: 100%;">Enable Multi-Squad</button>
-                    </div>
-                </div>
-
-                <div style="background: #111; padding: 15px; border: 1px solid #222; margin-bottom: 20px;">
-                    <label style="font-size: 11px; color: #888; display: block; margin-bottom: 10px;">MANUAL ROLE OVERRIDE</label>
-                    <div style="display: flex; flex-direction: column; gap: 8px;">
-                        <div style="display: flex; gap: 10px;">
-                            <select id="targetUnit" style="flex: 1; background: #000; color: #fff; border: 1px solid #333; padding: 5px; font-size: 12px;"></select>
-                            <select id="manualRole" style="flex: 1; background: #000; color: #fff; border: 1px solid #333; padding: 5px; font-size: 12px;">
-                                <option value="">Auto (Default)</option>
-                                <option value="Point">Point</option>
-                                <option value="Assault">Assault</option>
-                                <option value="Breach">Breach</option>
-                                <option value="Slack">Slack</option>
-                                <option value="SNIPER">Special: Sniper</option>
-                                <option value="NEGOTIATOR">Special: Negotiator</option>
-                            </select>
-                        </div>
-                        <button onclick="applyManualRole()" class="btn-primary" style="width: fit-content; align-self: flex-end; padding: 4px 15px; font-size: 11px; height: auto; margin-top: 5px;">APPLY OVERRIDE</button>
-                    </div>
-                </div>
-
-                <label style="font-size: 11px; color: #888;">ACTIVE ROSTER MANAGEMENT (KICK)</label>
-                <div id="adminRosterList" style="margin-top: 10px; max-height: 150px; overflow-y: auto; background: #000; padding: 10px; border: 1px solid #222;"></div>
-
-                <label style="font-size: 11px; color: #888; display: block; margin-top: 20px;">ACTIVITY LOG</label>
-                <div id="logContainer" style="margin-top:5px; font-family:'Share Tech Mono'; font-size:11px; background:#000; padding:10px; height:100px; overflow-y:auto; border: 1px solid #222; color: #555;"></div>
-            </div>
-        </div>
-    </div>
+    <h1>Just gonna leave this here:</h1>
+    <p>This is in no order, I am sure you can sort this out yourself :D</p>
+<div class="image-gallery">
+    <img src="/i/1.png" onclick="zoomImage(this)">
+    <img src="/i/2.png" onclick="zoomImage(this)">
+    <img src="/i/3.png" onclick="zoomImage(this)">
+    <img src="/i/4.png" onclick="zoomImage(this)">
+    <img src="/i/5.jpeg" onclick="zoomImage(this)">
+    <img src="/i/6.jpeg" onclick="zoomImage(this)">
+    <img src="/i/7.jpeg" onclick="zoomImage(this)">
+    <img src="/i/8.jpeg" onclick="zoomImage(this)">
+    <img src="/i/9.jpeg" onclick="zoomImage(this)">
+    <img src="/i/10.jpeg" onclick="zoomImage(this)">
+    <img src="/i/11.jpeg" onclick="zoomImage(this)">
+    <img src="/i/12.jpeg" onclick="zoomImage(this)">
+    <img src="/i/13.jpeg" onclick="zoomImage(this)">
+    <img src="/i/14.jpeg" onclick="zoomImage(this)">
+    <img src="/i/15.jpeg" onclick="zoomImage(this)">
 </div>
 
-<script src="js/data.js"></script>
+</div>
 <script src="js/app.js"></script>
-<script src="js/admin.js"></script>
 </body>
 </html>
